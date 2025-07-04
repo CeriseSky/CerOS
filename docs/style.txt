@@ -1,0 +1,70 @@
+This file is part of CerOS Documentation.
+CerOS Documentation (C) 2025 by Indigo Carmine (CeriseSky) is licensed under
+CC BY-NC-ND 4.0. To view a copy of this license, visit
+https://creativecommons.org/licenses/by-nc-nd/4.0/
+
+===CerOS Style Guidelines===
+
+==Contents==
+  - General
+  - Licenses & Projects
+  - Constants In Code
+  - Commands
+
+==General==
+  - All files must have a maximum name length of 8, and a maximum extension
+    length of 3 (e.g. "elloello.yay" is valid, and "byebyebye.nonono" is not)
+  - Text files must not exceed 80 columns on one line
+  - Indentation is preferred to be in spaces rather than tabs, and should have
+    a width of 2 spaces. For files like the makefile, tabs are used instead,
+    but should still be counted as taking up 2 of the 80 columns
+
+==Licenses & Projects==
+  - License notice should be given at the beginning of each licensed text file.
+    If the file is not plain text and the language used does not support
+    comments, then license notice can be omitted from the file.
+  - License notice should include a notice of which project the text file
+    belongs to.
+  - The main project licenses should be present in each project's root directory
+    and any additional licenses should be in the project's licenses directory
+    with the path <license name>/<project the license is for>.txt.
+  - Files that belong in the same project should be grouped together, though
+    this can be ignored if the file is more useful in another location, such as
+    the license overview document being in the licenses directory rather than
+    the docs directory.
+
+==Language==
+  - Documentation and comments should be written in good English.
+  - British and American English are both accepted and can be used
+    interchangably
+  - Currently, only C and Assembly are expected to be used in the operating
+    system code. However, generic tools can be written in any language, and
+    discussions can be started for incorporating other languages in the CerOS
+    code.
+
+==Constants In Code==
+  - Magic numbers should never be used in CerOS code. They hurt readability and
+    changeability far too much for any project, let alone operating system code.
+  - Magic numbers should be replaced with constants, or combinations of
+    constants, that have descriptive names to make the functionality of code
+    obvious and easy to change.
+  - Constants should avoid being redeclared. Instead, source files should
+    include header files that already declare these constants. This isn't always
+    a strict requirement, especially if the header files are not part of the
+    same project, or if the file is intended to be distributed by itself - as is
+    the case with the CerOS Boot Sector.
+  - Files that intentionally do not include other files should give a notice of
+    this intention.
+
+==Commands==
+  - In markdown files, commands must go in blocks like the readme file does.
+  - Markdown files do not need to differentiate specify user commands ($) unless
+    root commands (#) are also used in the same file. Root commands must always
+    be specified.
+  - Plain text files must always specify the user prompt or root prompt, and the
+    command prompt must be indented from the text around it
+  - required arguments for a command are surrounded by angle brackets < >, and
+    optional arguments are surrounded by box brackets [ ].
+  - An example user command might look like:
+      $ MyCommand <arg1> [arg2]
+

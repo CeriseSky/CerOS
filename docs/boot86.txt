@@ -1,0 +1,106 @@
+This file is part of CerOS Documentation.
+CerOS Documentation (C) 2025 by Indigo Carmine (CeriseSky) is licensed under
+CC BY-NC-ND 4.0. To view a copy of this license, visit
+https://creativecommons.org/licenses/by-nc-nd/4.0/
+
+===CerOS Bootloader Documentation===
+
+==Contents==
+  - Makefile Configuration
+  - Installation
+  - Features
+  - Limitations
+  - Feature Flags
+  - Error Codes
+
+==Makefile Configuration==
+Installation of just the bootloader can be done with the following command:
+  $ make -j1 dirs tools disk bootloader install_bootloader
+An intro to how to pass the flags to make can be found in the readme file.
+Below is a list of flags that can be edited safely to customise the bootloader
+build and installation:
+  DISK_TYPE - The type of disk in gendisk format (run gendisk help for options)
+  DISK_BOOT_PATH - The path on the boot disk that the bootloader will try to
+                   read from. Note that the bootloader does not automatically
+                   put a file at this location.
+  DISK_LABEL - The name of the disk that the bootloader is being installed to.
+               Can be set to any text, and is truncated automatically to 11
+               characters.
+  DISK_OEM - The name of the manufacturer/distributor of the target disk.
+             Can be set to any text, and is automatically truncated to 8
+             characters.
+  DISK_SERIAL - 32 bit number used as the disk's seraial number. Can be set
+                to any value.
+  BOOTSECTOR_FEATURES - The feature flags to be passed to the assembler (see
+                        the "Feature Flags" section)
+
+==Installation==
+The CerOS Boot Sector does a lot of work to condense itself into the 512 byte
+size limitation. Because of this, it is highly recommended to not try to
+manually set or specify the disk parameters. The bootloaer comes with the
+genflags tool which automatically generates the disk geometry, boot path, and
+other options to pass to the assembler. It uses the format:
+  $ tools/bin/genflags <disk type> <boot path> [label] [oem] [serial]
+To get the supported disk types:
+  $ tools/bin/genflags help
+This can be combined with additional options in the "Feature Flags" section
+to customise the build process of the bootloader. Additionally, the "-f bin"
+flag should also be passed to nasm to make sure that the boot record is
+generated in the right format. From there, an example installation goes as
+follows:
+  $ export DISK_TYPE=5.25/IBM/PC_5150/160K
+  $ export DISK_PATH=CerOS.img
+  $ export DISK_FLAGS=$(tools/bin/genflags $DISK_TYPE boot.com)
+  $ export FEATURES=-DFEAT_ERROR_CODES -DFEAT_DISK_RETRY
+  $ tools/bin/gendisk $DISK_TYPE $DISK_PATH
+  $ nasm -f bin $FEATURES $DISK_FLAGS src/boot/boot86.asm -o boot.bin
+  $ dd if=boot.bin of=disk.img conv=notrunc
+  $ tools/bin/fillfs disk.img
+After that, the bootloader is installed, and will look for the boot.com file
+on the disk, and run it.
+
+==Features==
+  - Customisable boot path support
+  - Support for subdirectories
+  - Large amounts of free space for file path
+
+==Limitations==
+  - No long file name support
+  - Limited disk support
+  - No support for 2.88M floppy diskettes due to the lba2chs conversion not
+    being suited for large cylinder counts. The code would likely work fine
+    unless the boot file is about 3/4 the way into the disk, in which case
+    the wrong data would be read. This could actually be fixed pretty
+    quickly in a future commit
+  - The directory buffer could overwrite the boot record if the boot file is
+    more than around 28KiB in size, which is an issue because COM files are
+    allowed to be that big.
+
+==Feature Flags==
+Information for the size overhead of these features can be found in the boot
+sector source file. Some features are used only for debug and are not listed
+here. They are, however, listed in the source file itself if you are
+interested. That being said, do keep in mind that debug flags are not supposed
+to create usable boot records, and are usually meant to force certain components
+to fail. A list of the usable features are as follows:
+  -DFEAT_DISK_RETRY: Enables the read_sectors function to automatically retry
+                     operations when they fail. Useful for floppy diskettes,
+                     which are known to be unreliable.
+  -DFEAT_LEADING_SLASH: Allows the boot path to contain a slash at the start.
+                        This is actually not recommended because genflags
+                        already strips the leading slash from the path.
+  -DFEAT_ERROR_CODES: Prints error codes to the screen in the form hX where X is
+                      the error code given as a single capital letter. See the
+                      "Error Codes" section for more information. The "h" is
+                      short for hang, indicating that execution has stopped.
+
+==Error Codes==
+Error codes are intentionally short to save on disk space, so listed below is
+every error code, the problem it is communicating, and all known causes of the
+error:
+  - hA: Disk error / Caused by: faulty disks, DBG_READ_FAIL feature,
+                                slow motor startup (floppy diskettes)
+  - hB: File not found error / Caused by: missing boot file,
+                                          leading slash in path without
+                                          FEAT_LEADING_SLASH enabled
+

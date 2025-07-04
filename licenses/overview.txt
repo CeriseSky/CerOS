@@ -1,0 +1,34 @@
+This file is part of CerOS Documentation.
+CerOS Documentation (C) 2025 by Indigo Carmine (CeriseSky) is licensed under
+CC BY-NC-ND 4.0. To view a copy of this license, visit
+https://creativecommons.org/licenses/by-nc-nd/4.0/
+
+As per the style guidelines, license information be shown in all the following
+places:
+  - At the beginning of each licensed text file, with notice of which project
+    the file belongs to
+  - At the root of each licensed project, in a file named LICENSE
+  - In the licenses directory, with the path <license name>/<project name>.txt
+Licensed material should be grouped together (i.e. materials considered part of
+the same project should be grouped in the same dirertory) though this isn't a
+strict requirement because some material (such as this file) is more useful
+
+Each subdirectory in the tools directory, is considered a generic tool. This
+means that it is an independed project separate from CerOS, with exceptions
+listed. Generic tools are licensed under the MIT License.
+Exceptions are as follows:
+  - genflags is considered part of the CerOS Bootloader, so uses the same
+    license as the bootloader
+
+Every file in the docs directory is considered part of the CerOS Documentation.
+CerOS Documentation (C) 2025 by Indigo Carmine (CeriseSky) is licensed under
+CC BY-NC-ND 4.0. To view a copy of this license, visit
+https://creativecommons.org/licenses/by-nc-nd/4.0/ 
+
+Unless specified otherwise, all other files in the CerOS repo are considered
+CerOS source code. This includes:
+  - The CerOS Bootloader (src/boot)
+This does not include:
+  - The licenses directory, and its contents
+CerOS source code is licensed under the GPLv3.
+
