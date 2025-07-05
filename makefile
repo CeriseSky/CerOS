@@ -69,7 +69,7 @@ install_programs: $(TMP)/boot.com
 	mcopy -i $(PREFIX)/disk.img $(TMP)/boot.com ::/boot.com
 
 programs:
-	$(ASM) $(PROGRAM_ASMFLAGS) $(PROGRAM_SRC)/hello.asm -o $(TMP)/boot.com
+	$(ASM) $(PROGRAM_ASMFLAGS) $(PROGRAM_SRC)/cpu_test.asm -o $(TMP)/boot.com
 
 disk: $(TOOLS) $(PREFIX)
 	$(TOOLS_PREFIX)/gendisk $(DISK_TYPE) $(PREFIX)/disk.img
