@@ -19,12 +19,16 @@
 #include <stdint.h>
 #include <vgatext.h>
 
+#ifndef COMMIT_HASH
+#define COMMIT_HASH "0"
+#endif
+
 void kmain(void) {
   uint8_t defColour = vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_BLACK);
   vgaText_disableCursor();
   vgaText_clear(defColour);
 
-  vgaText_puts("Hello, world!", 0, 0, defColour);
+  vgaText_puts("PrOS Kernel Commit " COMMIT_HASH, 0, 0, defColour);
 
   while(1);
 }

@@ -53,7 +53,8 @@ BOOTSECTOR_ASMFLAGS=-f bin $(BOOTSECTOR_FEATURES) $(BOOTSECTOR_OPTIONS)
 
 KERNEL_ASMFLAGS=-f elf64
 KERNEL_CFLAGS=-ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse \
-              -mno-sse2 -Wall -Werror -Wextra -Wpedantic -I$(KERNEL_INCLUDE)
+              -mno-sse2 -Wall -Werror -Wextra -Wpedantic -I$(KERNEL_INCLUDE) \
+              -DCOMMIT_HASH=\"$(COMMIT_HASH)\"
 KERNEL_LDFLAGS=-ffreestanding -nostdlib -lgcc -T$(SRC)/kernel/linker.ld \
                -Wl,-Map=$(PREFIX)/kernel.map
 
