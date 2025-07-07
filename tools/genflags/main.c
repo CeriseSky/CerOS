@@ -31,6 +31,7 @@ typedef enum {
   DT_GENERIC_160K,  // any disk that is exactly 163840 bytes in size
   DT_GENERIC_320K,  // any disk that is exactly 327680 bytes in size
   DT_GENERIC_1440K,
+  DT_GENERIC_720K,
   DT_COPY_STATS,
 } DISK_TYPE;
 
@@ -44,6 +45,7 @@ typedef struct disk {
 disk_t g_diskTypes[] = {
   { .name = "5.25/IBM/PC_5150/160K", .id = DT_GENERIC_160K },
   { .name = "5.25/IBM/PC_5150/320K", .id = DT_GENERIC_320K },
+  { .name = "3.5/IBM/PC/720K", .id = DT_GENERIC_720K },
   { .name = "3.5/IBM/PS2_286/1.44M", .id = DT_GENERIC_1440K },
 };
 #define NUM_DISK_TYPES (sizeof(g_diskTypes)/sizeof(disk_t))
@@ -85,6 +87,7 @@ enum DOS_MEDIA_TYPE {
   DOS_160K_FLOPPY = 0xfe,
   DOS_320K_FLOPPY = 0xff,
   DOS_1440K_FLOPPY = 0xf0,
+  DOS_CUSTOM_FLOPPY = 0xf0,
 };
 
 int main(int argc, char **argv) {
@@ -139,6 +142,16 @@ int main(int argc, char **argv) {
       diskInfo.totalHeads = 2;
       diskInfo.mediaType = DOS_320K_FLOPPY;
       diskInfo.rootDirSectors = 8;
+      break;
+
+    case DT_GENERIC_720K:
+      diskInfo.bytesPerSector = 512;
+      diskInfo.totalSectors = 720 * BYTES_PER_KILOBYTE /
+                              diskInfo.bytesPerSector;
+      diskInfo.sectorsPerTrack = 9;
+      diskInfo.totalHeads = 2;
+      diskInfo.mediaType = DOS_CUSTOM_FLOPPY;
+      diskInfo.rootDirSectors = 16;
       break;
 
     case DT_GENERIC_1440K:

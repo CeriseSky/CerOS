@@ -35,8 +35,7 @@ https://creativecommons.org/licenses/by-nc-nd/4.0/
 
 ==Language==
   - Documentation and comments should be written in good English.
-  - British and American English are both accepted and can be used
-    interchangably
+  - British English is preferred over American English.
   - Currently, only C and Assembly are expected to be used in the operating
     system code. However, generic tools can be written in any language, and
     discussions can be started for incorporating other languages in the CerOS

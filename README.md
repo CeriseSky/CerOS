@@ -9,8 +9,8 @@ be, and entirely different OSes can be made using CerOS as a template
 
 - Floppy diskette with a gendisk implementation (see docs/gendisk)
 - PC compatible BIOS/CSM
-- 32KiB RAM
-- Any x86 CPU
+- 64KiB RAM
+- Any x86_64 CPU
 
 ## Installation
 
@@ -30,7 +30,7 @@ sudo apt install mtools build-essential
 #### * Gentoo
 
 ```
-sudo emerge --ask sys-devel/gcc dev-build/make 
+sudo emerge --ask sys-devel/gcc dev-build/make sys-fs/mtools
 ```
 
 #### Arch
@@ -56,7 +56,12 @@ make
 ```
 
 This will create the disk image in bin/disk.img, ready to be booted in qemu or
-flashed to real hardware.
+flashed to real hardware. This also builds the croses compiler on the first build
+which might take a really long time so running parallel make is recommended:
+
+```
+make -j$(nproc)
+```
 
 ### Creating the tools
 
@@ -67,7 +72,9 @@ them manually, run this command:
 make tools
 ```
 
-This will create all the tools in the tools/bin directory
+This will create all the tools in the tools/bin directory. This is the rule that
+creates the cross compiler, meaning it should also be run in parallel to speed
+it up.
 
 ### Custom disk parameters
 

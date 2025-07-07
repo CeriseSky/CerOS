@@ -1,4 +1,4 @@
-# This file is part of the CerOS Bootloader & Bootloader Tools
+# This file is part of CerOS
 # Copyright (C) 2025 Indigo Carmine (CeriseSky)
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,3 +19,6 @@ tools/*/*.out
 tools/bin/
 srcDisks/
 bin/
+tools/xcompile/
+.cache/
+compile_commands.json

@@ -17,7 +17,7 @@
 # note: It is recommended to use the genflags tool to generate the options,
 #       rather than trying to define them manually or not at all
 
-DISK_TYPE=5.25/IBM/PC_5150/160K
+DISK_TYPE=5.25/IBM/PC_5150/320K
 DISK_BOOT_PATH=/boot.com
 DISK_LABEL=CEROS\ BOOT
 DISK_OEM=CSKYINDY
@@ -26,10 +26,14 @@ DISK_SERIAL=0x$(COMMIT_HASH)
 SRC=src
 BOOTLOADER_SRC=$(SRC)/boot
 TOOLS_SRC=tools
-PROGRAM_SRC=$(SRC)/programs
+KERNEL_SRC=$(SRC)/kernel
+
+INCLUDE=include
+KERNEL_INCLUDE=$(INCLUDE)/kernel
 
 PREFIX=bin
 TOOLS_PREFIX=tools/bin
+CROSS_PREFIX=tools/xcompile/bin
 TMP=$(PREFIX)/tmp
 OUTPUT_DIRS=$(PREFIX) \
             $(TOOLS_PREFIX) \
@@ -38,6 +42,8 @@ OUTPUT_DIRS=$(PREFIX) \
 COMMIT_HASH=$(shell git rev-parse HEAD | head -c 8)
 
 ASM=nasm
+CC=$(CROSS_PREFIX)/x86_64-elf-gcc
+LD=$(CROSS_PREFIX)/x86_64-elf-gcc
 
 BOOTSECTOR_FEATURES=-DFEAT_ERROR_CODES -DFEAT_DISK_RETRY
 BOOTSECTOR_OPTIONS=$(shell tools/bin/genflags \
@@ -45,31 +51,60 @@ BOOTSECTOR_OPTIONS=$(shell tools/bin/genflags \
                            $(DISK_OEM) $(DISK_SERIAL))
 BOOTSECTOR_ASMFLAGS=-f bin $(BOOTSECTOR_FEATURES) $(BOOTSECTOR_OPTIONS)
 
-PROGRAM_ASMFLAGS=-f bin
+KERNEL_ASMFLAGS=-f elf64
+KERNEL_CFLAGS=-ffreestanding -mcmodel=large -mno-red-zone -mno-mmx -mno-sse \
+              -mno-sse2 -Wall -Werror -Wextra -Wpedantic -I$(KERNEL_INCLUDE)
+KERNEL_LDFLAGS=-ffreestanding -nostdlib -lgcc -T$(SRC)/kernel/linker.ld \
+               -Wl,-Map=$(PREFIX)/kernel.map
+
+# in future, update to support directories in $(KERNEL_SRC)
+KERNEL_C_OBJS=$(patsubst $(KERNEL_SRC)/%.c,$(TMP)/k_%.o,\
+                         $(wildcard $(KERNEL_SRC)/*.c))
 
 TOOLS=$(patsubst tools/%,tools/bin/%,\
-      $(shell find tools -mindepth 1 -maxdepth 1 -type d -not -name bin))
+      $(shell find tools -mindepth 1 -maxdepth 1 -type d -not -name bin \
+                         -not -name xcompile))
+
+SCRIPTS=scripts
 
 .PHONY: all tools disk bootloader install install_bootloader install_programs \
-        programs
+        programs kernel install_kernel clean cleanbuild clean_os clean_osbuild \
 
-.NOTPARALLEL: install install_programs
+.NOTPARALLEL: install
 
-all: dirs tools disk bootloader programs .WAIT install
+all: dirs .WAIT tools .WAIT disk bootloader kernel .WAIT install
+
+# doesn't recreate the cross compiler
+clean_osbuild: clean_os .WAIT all
+
+cleanbuild: clean .WAIT all
 
 dirs: $(OUTPUT_DIRS)
 
-install: install_bootloader install_programs
+install: install_bootloader install_kernel
+
+run:
+	qemu-system-x86_64 -drive if=floppy,format=raw,file=$(PREFIX)/disk.img
+
+clean_os:
+	rm -rvf $(TMP) $(TOOLS_PREFIX)
+
+clean: clean_os
+	rm -rfv $(TOOLS_SRC)/xcompile
 
 install_bootloader: $(TOOLS) $(PREFIX)/disk.img $(TMP)/boot86.bin
 	dd if=$(TMP)/boot86.bin of=$(PREFIX)/disk.img conv=notrunc
 	$(TOOLS_PREFIX)/fillfs $(PREFIX)/disk.img
 
-install_programs: $(TMP)/boot.com
-	mcopy -i $(PREFIX)/disk.img $(TMP)/boot.com ::/boot.com
+kernel: $(KERNEL_C_OBJS)
+	$(ASM) $(KERNEL_ASMFLAGS) $(KERNEL_SRC)/start.asm -o $(TMP)/kstart.o
+	$(LD) $(KERNEL_LDFLAGS) $(TMP)/kstart.o $(KERNEL_C_OBJS) -o $(TMP)/boot.com
 
-programs:
-	$(ASM) $(PROGRAM_ASMFLAGS) $(PROGRAM_SRC)/cpu_test.asm -o $(TMP)/boot.com
+$(KERNEL_C_OBJS): $(TMP)/k_%.o: $(KERNEL_SRC)/%.c
+	$(CC) -c $(KERNEL_CFLAGS) $< -o $@
+
+install_kernel: $(PREFIX)/disk.img $(TMP)/boot.com
+	mcopy -i $(PREFIX)/disk.img $(TMP)/boot.com ::/boot.com
 
 disk: $(TOOLS) $(PREFIX)
 	$(TOOLS_PREFIX)/gendisk $(DISK_TYPE) $(PREFIX)/disk.img
@@ -78,7 +113,10 @@ bootloader: $(TMP)
 	$(ASM) $(BOOTSECTOR_ASMFLAGS) $(BOOTLOADER_SRC)/boot86.asm -o \
   $(TMP)/boot86.bin
 
-tools: $(TOOLS)
+tools: $(TOOLS) $(CROSS_PREFIX)
+
+$(CROSS_PREFIX):
+	$(SCRIPTS)/xcompile.sh
 
 $(TOOLS): $(TOOLS_PREFIX)/%: $(TOOLS_SRC)/%
 	mkdir -p $(TOOLS_PREFIX)

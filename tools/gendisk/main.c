@@ -37,6 +37,7 @@ typedef enum {
   DT_INVALID,
   DT_GENERIC_160K,  // any disk that is exactly 163840 bytes in size
   DT_GENERIC_320K,  // any disk that is exactly 327680 bytes in size
+  DT_GENERIC_720K,
   DT_GENERIC_1440K, // any disk that is exactly 1474560 bytes in size
   DT_COPY_STATS,
 } DISK_TYPE;
@@ -51,6 +52,7 @@ typedef struct disk {
 disk_t g_diskTypes[] = {
   { .name = "5.25/IBM/PC_5150/160K", .id = DT_GENERIC_160K },
   { .name = "5.25/IBM/PC_5150/320K", .id = DT_GENERIC_320K },
+  { .name = "3.5/IBM/PC/720K", .id = DT_GENERIC_720K},
   { .name = "3.5/IBM/PS2_286/1.44M", .id = DT_GENERIC_1440K},
 };
 #define NUM_DISK_TYPES (sizeof(g_diskTypes)/sizeof(disk_t))
@@ -100,6 +102,7 @@ int main(int argc, char **argv) {
     case DT_GENERIC_160K: diskSize = 160*BYTES_PER_KILOBYTE; break;
     case DT_GENERIC_1440K: diskSize = 1440*BYTES_PER_KILOBYTE; break;
     case DT_GENERIC_320K: diskSize = 320*BYTES_PER_KILOBYTE; break;
+    case DT_GENERIC_720K: diskSize = 720*BYTES_PER_KILOBYTE; break;
 
     case DT_INVALID:
       fprintf(stderr, "Requested type is not supported.\n"
