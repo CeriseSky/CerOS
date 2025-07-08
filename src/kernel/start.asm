@@ -19,6 +19,7 @@ KERNEL_OFFSET equ 8000h       ; makes it possible to use paging but requires
                               ; moving the kernel code to this address
 
 extern kmain
+extern vgaText_puts
 extern _end
 
 bits 16
@@ -149,7 +150,18 @@ start:
     mov rsp, 0x1000
     mov rbp, rsp
 
+    mov rdi, gdt.code64 - gdt
     call kmain
+
+    VGA_TEXT_COLS equ 80
+    VGA_TEXT_ROWS equ 25
+    VGA_TEXT_RED equ 4
+    VGA_TEXT_WHITE equ 15
+    mov rdi, endMessage
+    mov rsi, VGA_TEXT_COLS - endMessage.length
+    mov rdx, VGA_TEXT_ROWS - 1
+    mov rcx, VGA_TEXT_WHITE << 4 | VGA_TEXT_RED
+    call vgaText_puts
 
     .lmode.loop:
       jmp .lmode.loop
@@ -161,6 +173,9 @@ start:
     call puts16
     .hang.loop:
       jmp .hang.loop
+
+endMessage: db "Kernel has stopped execution."
+  .length equ $ - endMessage
 
 test_fail_handler16:
   cpu 8086
@@ -294,10 +309,40 @@ longmode_test16:
 
 global outb
 outb:
+  cpu x86-64
+  bits 64
   mov ax, si
   mov dx, di
   out dx, al
   ret
+
+global idt_lidt
+idt_lidt:
+  cpu x86-64
+  bits 64
+  ;mov rax, [rdi]
+  lidt [rdi]
+  ret
+
+global idt_call
+idt_call:
+  cpu x86-64
+  bits 64
+
+  mov rax, rdi
+  mov [.self_modify + 1], al
+
+  .self_modify: int 0
+
+  ret
+
+global interrupt_wrapper
+extern interrupt_handler
+interrupt_wrapper:
+  cpu x86-64
+  bits 64
+  call interrupt_handler
+  iretq
 
 gdt:
   .null: dq 0

@@ -18,18 +18,46 @@
 
 #include <stdint.h>
 #include <vgatext.h>
+#include <idt.h>
 
 #ifndef COMMIT_HASH
 #define COMMIT_HASH "0"
 #endif
 
-void kmain(void) {
-  uint8_t defColour = vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_BLACK);
+#define MSG_LOG "[LOG] - "
+#define MSG_ERR "[ERROR] - "
+
+void interrupt_wrapper(void);
+static idt_t idt;
+static idt_idtr idtr;
+
+void kmain(uint16_t selector) {
+  uint8_t logColour = vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_BLACK);
+  // uint8_t errColour = vgaText_genColour(VGA_TEXT_RED, VGA_TEXT_WHITE);
+
   vgaText_disableCursor();
-  vgaText_clear(defColour);
+  vgaText_clear(logColour);
+  vgaText_puts("PrOS Kernel Commit " COMMIT_HASH, 0, 0, logColour);
 
-  vgaText_puts("PrOS Kernel Commit " COMMIT_HASH, 0, 0, defColour);
+  vgaText_puts(MSG_LOG "Initialising IDT", 0, 1, logColour);
 
-  while(1);
+  idt_clear(&idt);
+  idt_setEntry(&idt, 0x20, (void *)interrupt_wrapper, selector,
+               IDT_PRESENT | IDT_RING0 | IDT_INTERRUPT);
+
+  idtr.size = sizeof(idt) - 1;
+  idtr.address = (uint64_t)&idt;
+  idt_lidt(&idtr);
+
+  idt_call(0x20);
+  vgaText_puts("Interrupt returned", 0, 2, logColour);
+
+  return;
+}
+
+void interrupt_handler(void) {
+  vgaText_puts("Interrupt Called", 0, VGA_TEXT_ROWS - 1,
+               vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_RED));
+  return;
 }
 
