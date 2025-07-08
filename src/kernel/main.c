@@ -28,7 +28,7 @@ void kmain(void) {
   vgaText_disableCursor();
   vgaText_clear(defColour);
 
-  vgaText_puts("PrOS Kernel Commit " COMMIT_HASH, 0, 0, defColour);
+  vgaText_puts("CerOS Kernel Commit " COMMIT_HASH, 0, 0, defColour);
 
   while(1);
 }
