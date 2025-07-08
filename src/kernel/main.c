@@ -41,23 +41,12 @@ void kmain(uint16_t selector) {
 
   vgaText_puts(MSG_LOG "Initialising IDT", 0, 1, logColour);
 
-  idt_clear(&idt);
-  idt_setEntry(&idt, 0x20, (void *)interrupt_wrapper, selector,
-               IDT_PRESENT | IDT_RING0 | IDT_INTERRUPT);
-
-  idtr.size = sizeof(idt) - 1;
-  idtr.address = (uint64_t)&idt;
+  idt_init(&idt, &idtr, selector);
   idt_lidt(&idtr);
 
   idt_call(0x20);
   vgaText_puts("Interrupt returned", 0, 2, logColour);
 
-  return;
-}
-
-void interrupt_handler(void) {
-  vgaText_puts("Interrupt Called", 0, VGA_TEXT_ROWS - 1,
-               vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_RED));
   return;
 }
 

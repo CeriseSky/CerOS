@@ -5,6 +5,7 @@
 // does not provide tools for IRQs
 
 #include <stdint.h>
+#include <idt_wrap.h>
 
 typedef struct {
   uint16_t size;
@@ -42,6 +43,18 @@ void idt_setEntry(idt_t *idt, uint8_t index, void *addr, uint16_t selector,
 void idt_lidt(idt_idtr *descriptor);
 
 void idt_call(uint8_t index);
+
+void idt_init(idt_t *idt, idt_idtr *idtr, uint16_t selector);
+
+typedef struct {
+  uint64_t r15, r14, r13, r12, r11, r10, r9, r8,
+           rdi, rsi, rdx, rcx, rbx, rax,
+           rbp,
+           index, errorCode,
+           rip, cs, rflags, rsp, ss;
+} __attribute__((packed)) idt_stack_frame;
+typedef void (*idt_handler)(idt_stack_frame *);
+void idt_defaultHandler(idt_stack_frame *stack);
 
 #endif
 
