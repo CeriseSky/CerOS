@@ -1,6 +1,9 @@
 #include <idt.h>
 #include <stddef.h>
 #include <vgatext.h>
+#include <memory.h>
+
+idt_handler idt_customHandlers[256] = {0};
 
 void idt_setEntry(idt_t *idt, uint8_t index, void *addr, uint16_t selector,
                   uint8_t flags) {
@@ -14,11 +17,20 @@ void idt_setEntry(idt_t *idt, uint8_t index, void *addr, uint16_t selector,
 }
 
 void idt_clear(idt_t *idt) {
+  memset(idt_customHandlers, 0, sizeof(idt_customHandlers));
+
   for(int i = 0; i < IDT_MAX_ENTRIES; i++)
     idt_setEntry(idt, i, NULL, 0, 0);
 }
 
-void idt_defaultHandler(idt_stack_frame *stack) {
+void idt_defaultHandler(idt_stackFrame *stack) {
+  if(idt_customHandlers[stack->index]) {
+    idt_customHandlers[stack->index](stack);
+    return;
+  }
+
+  idt_cli();
+
   uint8_t colour = vgaText_genColour(VGA_TEXT_WHITE, VGA_TEXT_BLUE);
   vgaText_clear(colour);
   vgaText_puts("Unhandled interrupt. Stopping kernel execution now.",
@@ -39,6 +51,8 @@ void idt_defaultHandler(idt_stack_frame *stack) {
 void idt_init(idt_t *idt, idt_idtr *idtr, uint16_t selector) {
   idtr->address = (uint64_t)idt;
   idtr->size = IDT_MAX_ENTRIES * sizeof(idt_entry) - 1;
+
+  idt_clear(idt);
 
   idt_setEntry(idt, 0, &idt_wrapper0, selector, 
                IDT_PRESENT | IDT_RING0 | IDT_TRAP);

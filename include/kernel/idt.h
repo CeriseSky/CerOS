@@ -40,9 +40,11 @@ typedef idt_entry idt_t[IDT_MAX_ENTRIES];
 void idt_clear(idt_t *idt);
 void idt_setEntry(idt_t *idt, uint8_t index, void *addr, uint16_t selector,
                   uint8_t flags);
-void idt_lidt(idt_idtr *descriptor);
 
-void idt_call(uint8_t index);
+void idt_lidt(idt_idtr *descriptor);
+void idt_call(uint8_t index);   // equivalent to asm: int index
+void idt_cli();
+void idt_sti();
 
 void idt_init(idt_t *idt, idt_idtr *idtr, uint16_t selector);
 
@@ -52,9 +54,11 @@ typedef struct {
            rbp,
            index, errorCode,
            rip, cs, rflags, rsp, ss;
-} __attribute__((packed)) idt_stack_frame;
-typedef void (*idt_handler)(idt_stack_frame *);
-void idt_defaultHandler(idt_stack_frame *stack);
+} __attribute__((packed)) idt_stackFrame;
+typedef void (*idt_handler)(idt_stackFrame *);
+void idt_defaultHandler(idt_stackFrame *stack);
+
+extern idt_handler idt_customHandlers[256];
 
 #endif
 

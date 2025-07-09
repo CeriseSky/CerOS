@@ -59,7 +59,7 @@ void vgaText_clear(uint8_t colour) {
 #endif
 
 void vgaText_disableCursor(void) {
-  outb(VGA_CRTC_ADDRESS_PORT, VGA_CRTC_CURSOR_START);
-  outb(VGA_CRTC_DATA_PORT, VGA_CURSOR_SHAPE_OFF);
+  io_outb(VGA_CRTC_ADDRESS_PORT, VGA_CRTC_CURSOR_START);
+  io_outb(VGA_CRTC_DATA_PORT, VGA_CURSOR_SHAPE_OFF);
 }
 

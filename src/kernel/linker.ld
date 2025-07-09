@@ -25,7 +25,12 @@ SECTIONS {
   .text : { *(.text) }
   .data : { *(.data) }
   .rodata : { *(.rodata*) }
+
+  _image_end = .;
+
+  _bss_start = .;
   .bss : { *(.bss) }
+  _bss_end = .;
 
   _end = .;
 }

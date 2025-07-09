@@ -20,7 +20,7 @@ KERNEL_OFFSET equ 8000h       ; makes it possible to use paging but requires
 
 extern kmain
 extern vgaText_puts
-extern _end
+extern _image_end
 
 bits 16
 cpu 8086
@@ -37,7 +37,7 @@ init:
   ; memcpy to the expected location.
   ; this allows the code to immediately stop using segmentation, which
   ; makes the process of setting up the page tables much easier
-  mov cx, _end - init
+  mov cx, _image_end - init
   xor ax, ax
   mov si, COM_OFFSET
   mov es, ax
@@ -147,11 +147,14 @@ start:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov rsp, 0x1000
+    mov rsp, KERNEL_OFFSET
     mov rbp, rsp
 
     mov rdi, gdt.code64 - gdt
+    mov rsi, gdt.data - gdt
     call kmain
+
+    cli
 
     VGA_TEXT_COLS equ 80
     VGA_TEXT_ROWS equ 25
@@ -307,8 +310,8 @@ longmode_test16:
   .end:
     ret
 
-global outb
-outb:
+global io_outb
+io_outb:
   cpu x86-64
   bits 64
   mov ax, si
@@ -334,6 +337,16 @@ idt_call:
 
   .self_modify: int 0
 
+  ret
+
+global idt_cli
+idt_cli:
+  cli
+  ret
+
+global idt_sti
+idt_sti:
+  sti
   ret
 
 gdt:
