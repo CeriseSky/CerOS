@@ -10,8 +10,8 @@ int threadChooser(idt_stackFrame *output, thread_t *threads,
 
   int targetThreadIndex = -1;
   thread_t *targetThread;
-  for(size_t i = 0; i < numThreads; i++)
-    if(threads[i].present) {
+  for(size_t i = 1; i < numThreads; i++)
+    if(threads[i].present && threads[i].sleepLeft <= 0) {
       targetThreadIndex = i;
       targetThread = &threads[i];
       break;
@@ -22,13 +22,15 @@ int threadChooser(idt_stackFrame *output, thread_t *threads,
 
   for(size_t i = targetThreadIndex; i < numThreads; i++)
     if(threads[i].requestAge > targetThread->requestAge &&
-       threads[i].present && !threads[i].active) {
+       threads[i].present && !threads[i].active &&
+       threads[i].sleepLeft <= 0) {
       targetThread = &threads[i];
       targetThreadIndex = i;
     }
 
-  for(size_t i = 0; i < numThreads; i++) {
-    threads[i].requestAge++;
+  for(size_t i = 1; i < numThreads; i++) {
+    if(threads[i].present)
+      threads[i].requestAge++;
     threads[i].active = 0;
   }
   threads[targetThreadIndex].requestAge = 0;

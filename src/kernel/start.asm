@@ -349,6 +349,11 @@ idt_sti:
   sti
   ret
 
+global thread0
+thread0:
+  hlt
+  jmp thread0
+
 gdt:
   .null: dq 0
   .code64:

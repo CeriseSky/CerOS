@@ -261,7 +261,8 @@ read_sectors:
       int BIOS_DISK_INT
       jnc .try
       %ifdef FEAT_ERROR_CODES
-        mov cl, 'A'
+        ;mov cl, 'A'
+        mov cl, ah
       %endif
       jmp hang
   %else
